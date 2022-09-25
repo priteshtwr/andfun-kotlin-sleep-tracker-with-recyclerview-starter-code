@@ -18,18 +18,13 @@ package com.example.android.trackmysleepquality.sleeptracker
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.android.trackmysleepquality.R
-import com.example.android.trackmysleepquality.convertDurationToFormatted
-import com.example.android.trackmysleepquality.convertNumericQualityToString
 import com.example.android.trackmysleepquality.database.SleepNight
 import com.example.android.trackmysleepquality.databinding.ListItemSleepNightBinding
 
-class SleepNightAdapter:ListAdapter<SleepNight,SleepNightAdapter.ViewHolder>(SleepNightDiffCallback()){
+class SleepNightAdapter(val clickListener: SleepNightListener) :ListAdapter<SleepNight,SleepNightAdapter.ViewHolder>(SleepNightDiffCallback()){
 
 //    var data = listOf<SleepNight>()
 //        set(value) {
@@ -43,7 +38,7 @@ class SleepNightAdapter:ListAdapter<SleepNight,SleepNightAdapter.ViewHolder>(Sle
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
        // val item = data[position]
         val item = getItem(position)
-        holder.bind(item)
+        holder.bind(clickListener,getItem(position)!!)
     }
 
 
@@ -53,11 +48,13 @@ class SleepNightAdapter:ListAdapter<SleepNight,SleepNightAdapter.ViewHolder>(Sle
     class ViewHolder private constructor(val binding: ListItemSleepNightBinding):RecyclerView.ViewHolder(binding.root){
 
         fun bind(
+            clickListener: SleepNightListener,
             item: SleepNight
         ) {
 
             binding.sleep = item
             binding.executePendingBindings()
+            binding.clickListener = clickListener
 //            val res = itemView.context.resources
 //            binding.sleepLength.text =
 //                convertDurationToFormatted(item.startTimeMilli, item.endTimeMilli, res)
@@ -95,4 +92,22 @@ class SleepNightAdapter:ListAdapter<SleepNight,SleepNightAdapter.ViewHolder>(Sle
 
 
 
+
+
+}
+
+class SleepNightListener(val clickListener: (sleepId: Long) -> Unit) {
+    fun onClick(night: SleepNight) = clickListener(night.nightId)
+}
+
+sealed class DataItem {
+    data class SleepNightItem(val sleepNight: SleepNight): DataItem() {
+        override val id = sleepNight.nightId
+    }
+
+    object Header: DataItem() {
+        override val id = Long.MIN_VALUE
+    }
+
+    abstract val id: Long
 }
